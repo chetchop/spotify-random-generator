@@ -16,5 +16,13 @@ provide authorization for `spotify-random-generator`.
 
 As a user I want to see a page that says `Welcome ${spotifyUsername}` when I am redirected from the oauth flow
 
+As a user I want to see a list of all my playlists when I am at the home page. This list will be below the 
+welcome message
+
+### Playlists
+As a user I want to be able to click on a playlist
+
+As a user when I click on a playlist I am shown a different view that has all songs in that playlist
+
 ## More TBD 
                   

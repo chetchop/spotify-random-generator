@@ -206,14 +206,37 @@ function test() {
   });
 }
 
-async function test2() {
-  return await test()
-}
+// async function test2() {
+//   return await test()
+// }
 
-var weirdshit = request("https://api.spotify.com/v1/me?access_token=" + access_token_global).then
+// var weirdshit = request("https://api.spotify.com/v1/me?access_token=" + access_token_global).then
 
 
-console.log(typeof weirdshit)
+// console.log(typeof weirdshit)
+
+// jeoff stuff
+
+const axios = require('axios');
+
+
+app.get('/jeoff', async function(req, res) {
+    const token = '';
+    if (token.length === 0) {
+        console.error('chetanya change line 224 xp');
+        return res.json('look at console lol');
+    }
+    const url = `https://api.spotify.com/v1/me?access_token=${token}`;
+    let response;
+    try {
+        response = await axios.get(url);
+        console.log(response.data);
+    } catch (err) {
+        console.error('murica');
+        console.error(err);
+    }
+    return res.json(response.data);
+});
 
 console.log('Listening on 8888');
 app.listen(8888);

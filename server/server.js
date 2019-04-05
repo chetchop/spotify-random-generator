@@ -17,7 +17,7 @@ var client_id = '46f5d7088097436fb3c50097ab1767a8'; // Your client id
 var client_secret = '182f59fb59704e388fa96958c4b564bf'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
-let access_token_global = "BQAFfSr2JDXQywQDG4mruLiRJjtcjG_WrvofBBhV0n8dWdwcvuuXHT7_VQ_nEUNgvpI6nOhUWnevPB79tXiCYON-NmS-pvH9sj8jNErlLGa_RN4EpX12yYcf-_fnu09Fr5wNOw5Clqweo_mqvvq8wqpr_NwW7D4mgUmLHr9YTKLc5nuDgPx_";
+let access_token_global;
 
 /**
  * Generates a random string containing numbers and letters
@@ -48,7 +48,7 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -109,7 +109,7 @@ app.get('/callback', function(req, res) {
         });
 
         // we can also pass the token to the browser to make requests from there
-        res.redirect('http://localhost:8888/#' +
+        res.redirect('http://localhost:3000/#' +
           querystring.stringify({
             access_token: access_token,
             refresh_token: refresh_token
@@ -177,6 +177,14 @@ app.get('/getPlaylists', function(req, res) {
   });
 });
 
+app.get('/getPlaylistImage/:playlist_id', function(req, res) {
+  request("https://api.spotify.com/v1/playlists/" + req.params.playlist_id + "/images?access_token=" + access_token_global,
+  function (error, response, body) {
+    let images = JSON.parse(body);
+    res.send(JSON.stringify(images));
+  })
+})
+
 
 app.get('/getSongs/:playlist_id', function(req, res) {
   request("https://api.spotify.com/v1/playlists/" + req.params.playlist_id + "/tracks?access_token=" + access_token_global, 
@@ -193,18 +201,23 @@ app.get('/getSongs/:playlist_id', function(req, res) {
 });
 
 
-function test() {
-  return new Promise(function(resolve, reject) {
-    request("https://api.spotify.com/v1/me?access_token=" + access_token_global, 
-    function(err, response, body) {
-      if(err) {
-        reject(err);
-      } else {
-        resolve(JSON.parse(body));
-      }
+app.get('/getSongs/:playlist_id/:snapshot_id', function(req, res) {
+  request("https://api.spotify.com/v1/playlists/" + req.params.playlist_id + "/tracks?access_token=" + access_token_global + "&snapshot_id=" + req.params.snapshot_id, 
+  function (error, response, body) {
+    let songsInPlaylist = JSON.parse(body)
+    let songsToReturn = []
+    songsInPlaylist.items.forEach(function(element) {
+      let songInfo = {name: element.track.name,
+                      id: element.track.id}
+      songsToReturn.push(songInfo)
     });
+    res.send(JSON.stringify(songsToReturn))
   });
-}
+});
+
+
+
+
 
 // async function test2() {
 //   return await test()
@@ -237,6 +250,13 @@ app.get('/jeoff', async function(req, res) {
     }
     return res.json(response.data);
 });
+
+
+
+
+
+
+
 
 console.log('Listening on 8888');
 app.listen(8888);

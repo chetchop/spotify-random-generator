@@ -17,7 +17,7 @@ var client_id = '46f5d7088097436fb3c50097ab1767a8'; // Your client id
 var client_secret = '182f59fb59704e388fa96958c4b564bf'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
-let access_token_global;
+let access_token_global = "BQBUrO02fCAUYD2uLZKYQgOrJFBSScpfGaU2effdDhA7VtIB0W-9O2zsltxRocnlOe6pMNs5R9Am8BrQlzlbka6DJ85AOkRMK19WR9JkOcIyyjC4UpgLuRLCkyxT0C9lYYIYTee096zg_AC_Lzwbp038IRwxeOzmscmHMjY5guRkaIO77tzMu2ZOw2EGlvpDFE1rewSZZOph2gxZWydc7BkKDCIupisONI5qBHg4N95VHbM";
 
 /**
  * Generates a random string containing numbers and letters
@@ -215,6 +215,22 @@ app.get('/getSongs/:playlist_id/:snapshot_id', function(req, res) {
   });
 });
 
+
+app.get('/getPlaylists2', function(req, res) {
+  request("https://api.spotify.com/v1/me/playlists?access_token=" + access_token_global,
+    function(error, response, body) {
+      playListResponse = JSON.parse(body).items;
+      let playListInfo = [];
+
+      playListResponse.forEach(function(playlist) {
+        playListInfo.push({playListID: playlist.id, playListName: playlist.name, playListImage: playlist.images[1].url, })
+      });
+
+      res.send(playListInfo)
+
+    }
+  )
+})
 
 
 

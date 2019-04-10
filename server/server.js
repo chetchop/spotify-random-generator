@@ -17,7 +17,7 @@ var client_id = '46f5d7088097436fb3c50097ab1767a8'; // Your client id
 var client_secret = '182f59fb59704e388fa96958c4b564bf'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
-let access_token_global = "BQBUrO02fCAUYD2uLZKYQgOrJFBSScpfGaU2effdDhA7VtIB0W-9O2zsltxRocnlOe6pMNs5R9Am8BrQlzlbka6DJ85AOkRMK19WR9JkOcIyyjC4UpgLuRLCkyxT0C9lYYIYTee096zg_AC_Lzwbp038IRwxeOzmscmHMjY5guRkaIO77tzMu2ZOw2EGlvpDFE1rewSZZOph2gxZWydc7BkKDCIupisONI5qBHg4N95VHbM";
+let access_token_global; //= "BQAyvo5erZlCTF7Q44HVaANB0_zwTT58M0k29xK_oTYVvY9f__J1R7hosjaLiXbWmvPcilXrbuZeSBC7IsnZGxctS9dsB_7HCCmHfPEODmvdRAknn1h9ma6j6EKQqwfwvfqNhoeMeXrz7C9ih3kx5h1EiqqNCJsiJDqACtvxVX2aBFBHLwVfsMf06lwSKCnXjfDjtEEgOn5etRKJZ0ELGRH0zqTcQrbbP6Cf80jC3vR9dy8";
 
 /**
  * Generates a random string containing numbers and letters
@@ -186,52 +186,118 @@ app.get('/getPlaylistImage/:playlist_id', function(req, res) {
 })
 
 
-app.get('/getSongs/:playlist_id', function(req, res) {
+app.get('/getSongs/:playlist_id', async function(req, res) {
   request("https://api.spotify.com/v1/playlists/" + req.params.playlist_id + "/tracks?access_token=" + access_token_global, 
   function (error, response, body) {
-    let songsInPlaylist = JSON.parse(body)
     let songsToReturn = []
-    songsInPlaylist.items.forEach(function(element) {
-      let songInfo = {name: element.track.name,
-                      id: element.track.id}
-      songsToReturn.push(songInfo)
-    });
+    if (!error && response.statusCode == 200) {
+      let songsInPlaylist = JSON.parse(body).items
+      songsInPlaylist.forEach(function(element) {
+        let songInfo = {name: element.track.name,
+                        id: element.track.id,
+                        uri: element.track.uri}
+        songsToReturn.push(songInfo)
+      });
+    }
     res.send(JSON.stringify(songsToReturn))
   });
 });
 
 
-app.get('/getSongs/:playlist_id/:snapshot_id', function(req, res) {
-  request("https://api.spotify.com/v1/playlists/" + req.params.playlist_id + "/tracks?access_token=" + access_token_global + "&snapshot_id=" + req.params.snapshot_id, 
-  function (error, response, body) {
-    let songsInPlaylist = JSON.parse(body)
-    let songsToReturn = []
-    songsInPlaylist.items.forEach(function(element) {
-      let songInfo = {name: element.track.name,
-                      id: element.track.id}
-      songsToReturn.push(songInfo)
-    });
-    res.send(JSON.stringify(songsToReturn))
-  });
-});
+// app.get('/getSongs/:playlist_id/:snapshot_id', function(req, res) {
+//   request("https://api.spotify.com/v1/playlists/" + req.params.playlist_id + "/tracks?access_token=" + access_token_global + "&snapshot_id=" + req.params.snapshot_id, 
+//   function (error, response, body) {
+//     let songsInPlaylist = JSON.parse(body)
+//     let songsToReturn = []
+//     songsInPlaylist.items.forEach(function(element) {
+//       let songInfo = {name: element.track.name,
+//                       id: element.track.id}
+//       songsToReturn.push(songInfo)
+//     });
+//     res.send(JSON.stringify(songsToReturn))
+//   });
+// });
 
 
-app.get('/getPlaylists2', function(req, res) {
+app.get('/getPlaylists2', async function(req, res) {
   request("https://api.spotify.com/v1/me/playlists?access_token=" + access_token_global,
     function(error, response, body) {
-      playListResponse = JSON.parse(body).items;
       let playListInfo = [];
-
-      playListResponse.forEach(function(playlist) {
-        playListInfo.push({playListID: playlist.id, playListName: playlist.name, playListImage: playlist.images[1].url, })
-      });
-
+      if (!error && response.statusCode == 200) {
+        playListResponse = JSON.parse(body).items;
+        playListURI = playListResponse.href;
+        playListResponse.forEach(function(playlist) {
+          let image = "https://www.freeiconspng.com/uploads/no-image-icon-6.png";
+          if (playlist.images.length > 0) {
+            image = playlist.images[1].url
+          }
+          playListInfo.push({playListID: playlist.id, playListName: playlist.name, playListImage: image})
+        });   
+      }
       res.send(playListInfo)
-
     }
   )
 })
 
+app.get('/getplaylist/:playlistID', function(req, res) {
+  request("https://api.spotify.com/v1/playlists/"+req.params.playlistID+"?access_token=" + access_token_global,
+  function(error, response, body) {
+    let playListInfo = [];
+    let playlist = JSON.parse(body)
+    if (!error && response.statusCode == 200) {
+      let image = "https://www.freeiconspng.com/uploads/no-image-icon-6.png";
+      if (playlist.images.length > 0) {
+        image = playlist.images[1].url
+      }
+      playListInfo.push({playListID: playlist.id, playListName: playlist.name, playListImage: image})
+    }
+    res.send(playListInfo)
+  }
+)
+});
+
+app.get('/createplaylist/:playlistName/:playlistDesc/:playlistSongs', function(req, res) {
+  request.post({
+    url: 'https://api.spotify.com/v1/users/nzqwni1ckz5aibwaos8cpshgr/playlists?access_token=' + access_token_global,
+    body: JSON.stringify({name: req.params.playlistName, description: req.params.playlistDesc, public: true})
+    }, function(error, response, body) {
+      if (error) { return console.log(error) }
+      let newPlaylist = JSON.parse(body);
+      request.post("	https://api.spotify.com/v1/playlists/"+ newPlaylist.id + 
+      "/tracks?uris=" +  makeProperURI(req.params.playlistSongs) + 
+      "&access_token=" + access_token_global, 
+      function(error, response, body) {
+        if(error) {return console.log(error)}
+        res.send(newPlaylist)
+      })
+
+  })
+})
+
+app.get('/addTrack/:playlistID/:songsURI', function(req, res) {
+  request.post("	https://api.spotify.com/v1/playlists/"+ req.params.playListID + 
+  "/tracks?uris=" +  makeProperURI(req.params.songsURI) + 
+  "&access_token=" + access_token_global, 
+  function(error, response, body) {
+    if(error) {return console.log(error)}
+    res.send(body)
+  })
+})
+
+function makeProperURI(inputURI) {
+  while(inputURI.includes(':')) {
+    inputURI = inputURI.replace(':', '%3A');
+  }
+  return inputURI;
+}
+
+
+
+
+//Test function route
+app.get('/test2',  function(req, res) {
+  res.send(makeProperURI("spotify:track:1INKoD3iLAGucA61tkCEJt"))
+});
 
 
 
@@ -266,6 +332,24 @@ app.get('/jeoff', async function(req, res) {
     }
     return res.json(response.data);
 });
+
+// app.get('/getPlaylists2', async function(req, res) {
+//   const url = `https://api.spotify.com/v1/me/playlists?access_token=${access_token_global}`;
+//   let response;
+//   let playListResponse = [];
+//   let playListInfo = [];
+//   try {
+//       response = await axios.get(url);
+//   } catch (err) {
+//       return res.send('fdhsakfhsdkl')
+//   }
+//   console.log(response.data)
+//   playListResponse = response.data;
+//   playListResponse.forEach(function(playlits) {
+//     playListInfo.push({playListID: playlist.id, playListName: playlist.name, playListImage: playlist.images[1].url})
+//   })
+//   return res.send(playListInfo);
+// });
 
 
 

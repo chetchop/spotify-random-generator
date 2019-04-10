@@ -19,6 +19,7 @@ import Nestedlist from './NestedList'
 import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import PlaylistInfoTile from './PlaylistInfoTile'
+import RandomizeButton from './RandomizeButton'
 
 
 
@@ -76,17 +77,33 @@ const buttonStyle = {
 class MainBoard extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { currentlySelectedPlaylist: "",
-                  currentSong: ""
+    this.state = {currentPlaylistImage: "",
+                  currentPlaylistID: "",
+                  currentPlaylistName: "",
+                  currentUser : []
+                  
+                  
     };
   }
 
-  testClick = (playList) => {
-    this.setState({currentlySelectedPlaylist: playList.playListImage, currentSong: playList.playListID});
+  getUser() {
+    fetch("http://localhost:8888/getUser")
+    .then(res => res.text())
+    .then(res => this.setState({currentUser: JSON.parse(res)}))
+    .catch(err => err);
   }
 
+  componentDidMount() {
+    this.getUser();
+    
+  };
 
-  
+  loadPlaylist = (playlist) => {
+    this.setState({currentPlaylistImage: playlist.playListImage, currentPlaylistID: playlist.playListID, currentPlaylistName: playlist.playListName});
+    console.log(playlist)
+  };
+
+
   render() {
     const { classes } = this.props;
     return (
@@ -109,9 +126,9 @@ class MainBoard extends React.Component {
           }}
         >
           <div className={classes.toolbar} />
-          {['Original Playlists', 'Randomized Playlists'].map(listTitle => (
+          {['Original Playlists'].map(listTitle => (
             <div>
-              <Nestedlist listTitle={listTitle} testClick={this.testClick}  classes={{color: 'red'}}/>
+              <Nestedlist listTitle={listTitle} loadPlaylist={this.loadPlaylist}  classes={{color: 'red'}}/>
               <Divider/>
             </div>
           ))}
@@ -120,9 +137,10 @@ class MainBoard extends React.Component {
         </Drawer>
         <main className={classes.content}>
           <div className={classes.toolbar} />
-          
-          
-          <Paper width={100} height={100}><img src={this.state.currentlySelectedPlaylist}></img></Paper>
+          <Paper width={100} height={100}><img src={this.state.currentPlaylistImage}></img>
+          <RandomizeButton playlistID={this.state.currentPlaylistID} playlistName={this.state.currentPlaylistName} loadPlaylist={this.loadPlaylist}/>
+          </Paper>
+          <iframe src={"https://open.spotify.com/embed/playlist/"+this.state.currentPlaylistID} width="800" height="500" frameborder="0" allowtransparency="false" allow="encrypted-media"></iframe>
           
         </main>
       </div>

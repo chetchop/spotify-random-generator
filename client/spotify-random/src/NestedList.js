@@ -29,38 +29,40 @@ const styles = theme => ({
 class NestedList extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {apiResponse: "",
+        this.state = {playlists: [],
                       open: false};
-        this.testObj = {shit1: 1,
-                        shit2: 2};
+
     }
 
     getPlaylists() {
         fetch("http://localhost:8888/getplaylists2")
             .then(res => res.text())
-            .then(res => this.setState({apiResponse: JSON.parse(res)}))
+            .then(res => this.setState({playlists: JSON.parse(res)}))
             .catch(err => err);
     }
   
     componentDidMount() {
         this.getPlaylists();
     }
-        
 
+    componentDidUpdate() {
+      this.getPlaylists();
+    }
+        
 
   handleClick = () => {
     this.setState(state => ({ open: !state.open }));
   };
 
-  handlePlaylistSelection = (id) => {
-    this.props.testClick(id);
+  handlePlaylistSelection = (playlist) => {
+    this.props.loadPlaylist(playlist);
   }
 
   render() {
     const { classes } = this.props;
-    const playLists = []
-    for (var i in this.state.apiResponse) {
-      playLists.push(this.state.apiResponse[i])
+    const playlistsArray = []
+    for (var i in this.state.playlists) {
+      playlistsArray.push(this.state.playlists[i])
     }
 
     return (
@@ -84,8 +86,8 @@ class NestedList extends React.Component {
         </ListItem>
         <Collapse in={this.state.open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {playLists.map(value => (
-                <ListItem button className={classes.nested} onClick={this.handlePlaylistSelection.bind(this, value)}>
+            {playlistsArray.map(value => (
+                <ListItem button className={classes.nested} onClick={this.handlePlaylistSelection.bind(this, value)} key={value.playListID}>
                 {/* <ListItemIcon>
                     <StarBorder />
                 </ListItemIcon> */}
